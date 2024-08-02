@@ -1,7 +1,6 @@
 const User = require("../models/user.model.js");
 const data = require("../data.json");
 const fs = require("fs");
-const { log } = require("console");
 
 function getFileWebData(req, res) {
   try {
@@ -30,6 +29,7 @@ function getFileJsonData(req, res) {
 
 async function getDBWebData(req, res) {
   const allUsers = await User.find({});
+  // console.log(allUsers);
   const html = `<ul>
   ${allUsers
     .map((item) => {
@@ -51,9 +51,12 @@ async function getDBJsonData(req, res) {
 }
 
 function getUserByIdFromFile(req, res) {
-  const id = Number(req.params.id);
-  const user = data.find((item) => id === item._id);
-  return res.json(user);
+  fs.readFile("./data.json", (err, data) => {
+    const new_data = JSON.parse(data);
+    const id = Number(req.params.id);
+    const user = new_data.find((item) => id === item._id);
+    return res.json(user);
+  });
 }
 
 async function getUserByIdFromDB(req, res) {
@@ -84,30 +87,14 @@ async function createDbUser(req, res) {
 }
 
 function createFileUSer(req, res) {
-  const new_data = [];
+  console.log(req.body);
   fs.readFile("./data.json", (err, data) => {
-    new_data = JSON.parse(data);
-  });
-  new_data.push({ ...req.body, _id: new_data.length });
-  fs.writeFile("./data.json", JSON.stringify(new_data), (errlog, datalog) => {
-    return res.send({ status: "Completed" });
-  });
-}
-
-function deleteFileUser(req, res) {
-  const id = Number(req.params.id);
-  fs.readFile("./data.json", (err, data) => {
-    const updated_data = data.filter((item) => Number(id) !== Number(item._id));
-    fs.writeFile("./data.json", JSON.stringify(updated_data), (err, data) => {
+    const new_data = JSON.parse(data);
+    new_data.push({ ...req.body, _id: new_data.length });
+    fs.writeFile("./data.json", JSON.stringify(new_data), (errlog, datalog) => {
       return res.send({ status: "Completed" });
     });
   });
-}
-
-async function deleteDbUser(req, res) {
-  console.log(req.params.id);
-  await User.findByIdAndDelete(req.params.id);
-  return res.send({ status: "Completed" });
 }
 
 module.exports = {
@@ -119,6 +106,4 @@ module.exports = {
   getUserByIdFromDB,
   createDbUser,
   createFileUSer,
-  deleteFileUser,
-  deleteDbUser,
 };

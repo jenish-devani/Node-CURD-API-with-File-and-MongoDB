@@ -8,8 +8,9 @@ DB_Connect();
 
 const app = express();
 
-app.use("/api/users", userRoutes);
 app.use(bodyParser.json());
+app.use("/api/users", userRoutes);
+
 
 app.listen(4000, (req, res) => {
   console.log(`App is running`);
